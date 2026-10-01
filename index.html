@@ -1,0 +1,1345 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a111a" id="themeColorMeta">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="UB Perfumes">
+<title>UB Perfumes Importados | Perfumaria de Luxo</title>
+
+<!-- Favicon & PWA Manifest -->
+<link rel="manifest" href="manifest.json">
+<link id="dynamic-favicon" rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<!-- FIREBASE SDKs (Compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+<style>
+/* VARIÁVEIS DO TEMA ESCURO (PALETA UB PERFUMES: AZUL NOITE E DOURADO) */
+:root {
+  --bg-dark: #0a111a;
+  --bg-header: rgba(10, 17, 26, 0.95);
+  --bg-card: #111a26;
+  --bg-input: #172333;
+  --border-line: #223247;
+  
+  --gold-primary: #d4af37;
+  --gold-gradient: linear-gradient(135deg, #c59b27, #f3d068);
+  
+  --accent-light: #f3d068;
+  
+  --text-main: #f1f5f9;
+  --text-muted: #8e9bb0;
+  --text-title: #ffffff;
+  --green: #22c55e;
+  --red: #ef4444;
+  --shadow-color: rgba(0, 0, 0, 0.8);
+}
+
+/* VARIÁVEIS DO TEMA CLARO */
+body.light-theme {
+  --bg-dark: #f4f6f9;
+  --bg-header: rgba(255, 255, 255, 0.95);
+  --bg-card: #ffffff;
+  --bg-input: #eef2f7;
+  --border-line: #d1d9e6;
+  
+  --gold-primary: #b8860b;
+  --gold-gradient: linear-gradient(135deg, #b8860b, #d4af37);
+  
+  --accent-light: #b8860b;
+  
+  --text-main: #1c2530;
+  --text-muted: #5a6b82;
+  --text-title: #0a111a;
+  --shadow-color: rgba(0, 0, 0, 0.08);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg-dark);
+  color: var(--text-main);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+button, input, select { font: inherit; }
+
+.app {
+  max-width: 520px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--bg-dark);
+  position: relative;
+  padding-bottom: 90px;
+  box-shadow: 0 0 50px var(--shadow-color);
+  transition: background-color 0.3s ease;
+}
+
+@media(min-width: 1024px) {
+  .app {
+    max-width: 1100px;
+    padding-bottom: 40px;
+  }
+  .products-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+  .bottom-nav {
+    display: none !important;
+  }
+}
+
+/* BANNER DE INSTALAÇÃO DO APP */
+.install-banner {
+  display: none;
+  background: var(--gold-gradient);
+  color: #0a111a;
+  padding: 10px 16px;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.install-banner button {
+  background: #0a111a;
+  color: #f3d068;
+  border: 0;
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* HEADER */
+header {
+  padding: 16px 20px 10px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--bg-header);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-line);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.brand-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.brand-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.logo-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid var(--gold-primary);
+}
+
+.brand-text h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  background: linear-gradient(90deg, #ffffff, var(--gold-primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-text p {
+  margin: 2px 0 0;
+  font-size: 10px;
+  color: var(--gold-primary);
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.header-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.btn-icon-head {
+  background: var(--bg-input);
+  border: 1px solid var(--border-line);
+  color: var(--text-main);
+  padding: 8px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: .2s;
+}
+
+.btn-icon-head:hover {
+  border-color: var(--gold-primary);
+  color: var(--gold-primary);
+}
+
+/* BUSCA */
+.search-wrapper {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.search-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-line);
+  color: var(--text-main);
+  border-radius: 99px;
+  padding: 12px 16px 12px 42px;
+  font-size: 13px;
+  outline: none;
+  transition: .2s;
+}
+
+.search-input:focus {
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+/* CATEGORIAS */
+.categories-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-width: none;
+}
+
+.categories-chips::-webkit-scrollbar { display: none; }
+
+.chip {
+  background: var(--bg-input);
+  border: 1px solid var(--border-line);
+  color: var(--text-muted);
+  padding: 8px 18px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.chip.active {
+  background: var(--gold-gradient);
+  color: #0a111a;
+  border-color: var(--gold-primary);
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3);
+}
+
+/* BANNER HERO */
+.banner-container {
+  padding: 16px 20px 10px;
+}
+
+.banner-img {
+  width: 100%;
+  border-radius: 20px;
+  border: 1px solid var(--border-line);
+  box-shadow: 0 10px 25px var(--shadow-color);
+  display: block;
+}
+
+/* LISTA DE PRODUTOS */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-title);
+}
+
+.section-header .count {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  padding: 0 20px;
+}
+
+.product-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-line);
+  border-radius: 18px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: .2s;
+  position: relative;
+  box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.product-card:hover {
+  border-color: var(--gold-primary);
+  transform: translateY(-2px);
+}
+
+.product-thumb {
+  height: 170px;
+  background: var(--bg-input);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.product-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-cat-tag {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(10, 17, 26, 0.85);
+  border: 1px solid var(--gold-primary);
+  color: var(--gold-primary);
+  font-size: 9px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.product-info {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.product-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  line-height: 1.3;
+  color: var(--text-title);
+}
+
+.product-price {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--gold-primary);
+  margin-top: auto;
+}
+
+.btn-add {
+  margin-top: 10px;
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-line);
+  color: var(--text-main);
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.btn-add:hover {
+  background: var(--gold-gradient);
+  border-color: var(--gold-primary);
+  color: #0a111a;
+}
+
+.btn-delete-prod {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(239, 68, 68, 0.9);
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 10;
+  display: none;
+}
+
+/* NAVEGAÇÃO INFERIOR MOBILE */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--bg-header);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border-line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.bottom-nav button {
+  flex: 1;
+  background: none;
+  border: 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  padding: 6px 0;
+  transition: color 0.2s ease;
+}
+
+.bottom-nav button.active {
+  color: var(--gold-primary);
+}
+
+.bottom-nav button span {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* BOTÃO FLUTUANTE DA SACOLA */
+.floating-cart {
+  position: fixed;
+  bottom: 75px;
+  right: calc(50% - 240px);
+  z-index: 45;
+  background: var(--gold-gradient);
+  color: #0a111a;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  border: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(212, 175, 55, 0.4);
+}
+
+@media(max-width: 520px) {
+  .floating-cart { right: 16px; }
+}
+
+.cart-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #0a111a;
+  color: var(--gold-primary);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 99px;
+  border: 2px solid var(--gold-primary);
+}
+
+/* MODAIS */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(6px);
+}
+
+.modal-overlay.active { display: flex; }
+
+.modal-content {
+  background: var(--bg-card);
+  border: 1px solid var(--border-line);
+  border-radius: 24px;
+  width: min(480px, 100%);
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 20px;
+  color: var(--text-main);
+  box-shadow: 0 20px 40px var(--shadow-color);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-line);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.modal-header h3 { margin: 0; font-size: 18px; color: var(--text-title); }
+
+.close-btn {
+  background: none;
+  border: 0;
+  color: var(--text-muted);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.form-group { margin-top: 12px; }
+.form-group label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border-line);
+  background: var(--bg-input);
+  color: var(--text-main);
+  font-size: 13px;
+  outline: none;
+}
+
+.btn-primary {
+  width: 100%;
+  background: var(--gold-gradient);
+  color: #0a111a;
+  border: 0;
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 14px;
+  margin-top: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3);
+}
+
+.pix-box {
+  background: var(--bg-input);
+  border: 1px dashed var(--gold-primary);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 12px;
+  text-align: center;
+  display: none;
+}
+
+.pix-key {
+  font-family: monospace;
+  font-size: 13px;
+  color: var(--gold-primary);
+  word-break: break-all;
+  background: rgba(0,0,0,0.2);
+  padding: 10px;
+  border-radius: 8px;
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+.admin-section {
+  border-top: 1px solid var(--border-line);
+  padding-top: 16px;
+  margin-top: 20px;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- BANNER DE INSTALAÇÃO DO APP -->
+  <div class="install-banner" id="installBanner">
+    <span id="installText">✨ Instalar App UB Perfumes</span>
+    <button id="btnInstall">Instalar</button>
+  </div>
+
+  <header>
+    <div class="brand-row">
+      <div class="brand-info" onclick="scrollTop()">
+        <img class="logo-img" id="appLogo" src="icon.png" alt="UB Perfumes" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=100&q=80'">
+        <div class="brand-text">
+          <h1>UB Perfumes</h1>
+          <p>Importados Exclusivos</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-icon-head" id="themeToggleBtn" onclick="toggleTheme()" title="Alternar Tema">🌙 Dark</button>
+        <button class="btn-icon-head" onclick="openModal('botModal')">🪄 Sommelier</button>
+        <button class="btn-icon-head" onclick="openModal('adminModal')">🛡️ Admin</button>
+      </div>
+    </div>
+
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" class="search-input" placeholder="Buscar perfumes, notas, fragrâncias..." oninput="renderProducts()">
+    </div>
+
+    <div class="categories-chips" id="categoriesContainer"></div>
+  </header>
+
+  <section class="banner-container">
+    <img class="banner-img" id="appBanner" src="banner.jpg" alt="UB Perfumes Banner" onerror="this.onerror=null;this.style.display='none'">
+  </section>
+
+  <main>
+    <div class="section-header">
+      <h2>Fragrâncias que Deixam Marca</h2>
+      <span class="count" id="productCount">Carregando...</span>
+    </div>
+
+    <div class="products-grid" id="productsGrid"></div>
+  </main>
+
+  <button class="floating-cart" onclick="openModal('cartModal')">
+    🛍️
+    <span class="cart-badge" id="cartBadge">0</span>
+  </button>
+
+  <!-- NAVEGAÇÃO INFERIOR MOBILE -->
+  <nav class="bottom-nav">
+    <button id="navBoutique" class="active" onclick="setActiveNav(this); scrollTop()">
+      <span>✨</span>
+      Boutique
+    </button>
+    <button id="navSearch" onclick="setActiveNav(this); document.getElementById('searchInput').focus()">
+      <span>🔍</span>
+      Buscar
+    </button>
+    <button id="navCart" onclick="setActiveNav(this); openModal('cartModal')">
+      <span>🛍️</span>
+      Sacola
+    </button>
+    <button id="navAdmin" onclick="setActiveNav(this); openModal('adminModal')">
+      <span>⚙️</span>
+      Admin
+    </button>
+  </nav>
+</div>
+
+<!-- MODAL SACOLA / CARRINHO -->
+<div class="modal-overlay" id="cartModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Sua Sacola de Compras</h3>
+      <button class="close-btn" onclick="closeModal('cartModal')">✕</button>
+    </div>
+    <div id="cartItemsList"></div>
+
+    <h4 style="margin: 16px 0 8px; border-top: 1px solid var(--border-line); padding-top: 12px; color:var(--gold-primary)">Dados Pessoais & Entrega</h4>
+
+    <div class="form-group">
+      <label>Nome Completo *</label>
+      <input type="text" id="clientName" placeholder="Ex: Maria Oliveira">
+    </div>
+
+    <div class="form-group">
+      <label>WhatsApp / Telefone *</label>
+      <input type="text" id="clientPhone" placeholder="Ex: (99) 99140-9267" oninput="maskPhone(this)" maxlength="15">
+    </div>
+
+    <div class="form-group">
+      <label>Modalidade de Envio</label>
+      <select id="deliverySelect" onchange="toggleDeliveryFields()">
+        <option value="delivery">Entrega VIP Express — R$ 15,00 (Grátis > R$ 250)</option>
+        <option value="pickup">Retirar na Boutique — Grátis</option>
+      </select>
+    </div>
+
+    <!-- CAMPOS DE ENDEREÇO -->
+    <div id="deliveryFields">
+      <div class="form-group">
+        <label>Buscar Endereço por CEP</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="cepInput" placeholder="Ex: 65900-000" maxlength="9" oninput="maskCEP(this)">
+          <button type="button" onclick="searchCEP()" style="background:var(--gold-primary);border:0;color:#0a111a;padding:0 14px;border-radius:10px;font-weight:bold;cursor:pointer">Buscar</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Rua / Logradouro *</label>
+        <input type="text" id="addressStreet" placeholder="Avenida, Rua...">
+      </div>
+
+      <div style="display:grid;grid-template-columns: 1fr 1fr;gap:8px;">
+        <div class="form-group">
+          <label>Número *</label>
+          <input type="text" id="addressNum" placeholder="123">
+        </div>
+        <div class="form-group">
+          <label>Bairro</label>
+          <input type="text" id="addressNeighborhood" placeholder="Bairro">
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns: 2fr 1fr;gap:8px;">
+        <div class="form-group">
+          <label>Cidade</label>
+          <input type="text" id="addressCity" placeholder="Cidade">
+        </div>
+        <div class="form-group">
+          <label>Estado</label>
+          <input type="text" id="addressState" placeholder="UF">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Ponto de Referência (Opcional)</label>
+        <input type="text" id="addressRef" placeholder="Ex: Próximo ao shopping...">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Forma de Pagamento</label>
+      <select id="paymentSelect" onchange="togglePaymentBox()">
+        <option value="PIX">PIX (Aprovação Imediata)</option>
+        <option value="Cartão">Cartão de Crédito/Débito</option>
+        <option value="Dinheiro">Dinheiro no Ato da Entrega</option>
+      </select>
+    </div>
+
+    <!-- ÁREA DO PIX DIRETO -->
+    <div class="pix-box" id="pixBox">
+      <div style="font-weight:700;font-size:13px;color:var(--gold-primary)">⚡ Chave PIX Oficial:</div>
+      <div class="pix-key" id="pixKeyText">Carregando chave...</div>
+      <button type="button" id="btnCopyPix" onclick="copyPixKey()" style="background:var(--gold-primary);border:0;color:#0a111a;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">Copiar Chave PIX</button>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:8px">Envie o comprovativo via WhatsApp junto ao pedido para liberação expressa.</p>
+    </div>
+
+    <div style="margin-top:16px; border-top: 1px solid var(--border-line); padding-top: 12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:13px;color:var(--text-muted)">Investimento Total:</span>
+        <strong id="cartTotal" style="color:var(--gold-primary);font-size:20px">R$ 0,00</strong>
+      </div>
+    </div>
+    <button class="btn-primary" id="btnCheckout" onclick="processCheckout()">🛍️ Finalizar Pedido via WhatsApp</button>
+  </div>
+</div>
+
+<!-- MODAL BOT SOMMELIER -->
+<div class="modal-overlay" id="botModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>🪄 Sommelier Olfativo UB</h3>
+      <button class="close-btn" onclick="closeModal('botModal')">✕</button>
+    </div>
+    <p style="font-size:13px;color:var(--text-muted)">Dúvidas sobre notas, fixação, projeção ou recomendações de fragrâncias?</p>
+    <div class="form-group">
+      <input type="text" id="botQuery" placeholder="Pergunte (ex: fixação, doce, marcante, frete)..." onkeydown="if(event.key==='Enter') askBot()">
+    </div>
+    <button class="btn-primary" onclick="askBot()">Consultar Sommelier</button>
+    <div id="botAnswer" style="margin-top:14px;font-size:13px;line-height:1.5"></div>
+  </div>
+</div>
+
+<!-- MODAL ADMIN -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Painel UB Perfumes</h3>
+      <button class="close-btn" onclick="closeModal('adminModal')">✕</button>
+    </div>
+    <div id="adminLoginForm">
+      <div class="form-group">
+        <label>Senha de Acesso Restrito</label>
+        <input type="password" id="adminPass" placeholder="Digite a senha" onkeydown="if(event.key==='Enter') loginAdmin()">
+      </div>
+      <button class="btn-primary" style="margin-top:12px" onclick="loginAdmin()">Acessar Painel</button>
+    </div>
+    
+    <div id="adminPanel" style="display:none">
+      <h4 style="color:var(--gold-primary)">Cadastrar Nova Fragrância</h4>
+      <div class="form-group"><label>Nome do Perfume *</label><input type="text" id="pName" placeholder="Ex: Club de Nuit Intense"></div>
+      <div class="form-group"><label>Categoria / Família</label><input type="text" id="pCat" placeholder="Ex: Importados, Amadeirados"></div>
+      <div class="form-group"><label>Preço (R$) *</label><input type="number" id="pPrice" step="0.01" placeholder="299.90"></div>
+      
+      <div class="form-group">
+        <label>Foto do Dispositivo</label>
+        <input type="file" id="pFile" accept="image/*" onchange="previewFileImage(this)">
+      </div>
+      <div class="form-group">
+        <label>OU URL da Imagem</label>
+        <input type="text" id="pImg" placeholder="https://exemplo.com/perfume.jpg">
+      </div>
+      
+      <button class="btn-primary" style="margin-top:12px" onclick="saveProduct()">Salvar Perfume no Catálogo</button>
+
+      <div class="admin-section">
+        <h4 style="color:var(--gold-primary)">Alterar Senha Administrativa</h4>
+        <div class="form-group"><label>Nova Senha</label><input type="password" id="newAdminPass" placeholder="Digite a nova senha"></div>
+        <button class="btn-primary" style="background:var(--bg-input);border:1px solid var(--border-line);margin-top:8px;color:var(--text-main)" onclick="changeAdminPassword()">Atualizar Senha</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- CONTROLE DA NAVEGAÇÃO INFERIOR ---
+function setActiveNav(element) {
+  document.querySelectorAll('.bottom-nav button').forEach(btn => btn.classList.remove('active'));
+  if (element) element.classList.add('active');
+}
+
+// --- CONTROLE DE TEMA ---
+function initTheme() {
+  const savedTheme = localStorage.getItem('ub_theme') || 'dark';
+  if (savedTheme === 'light') {
+    document.body.classList.add('light-theme');
+    document.getElementById('themeToggleBtn').textContent = '☀️ Claro';
+    document.getElementById('themeColorMeta').setAttribute('content', '#f4f6f9');
+  } else {
+    document.body.classList.remove('light-theme');
+    document.getElementById('themeToggleBtn').textContent = '🌙 Dark';
+    document.getElementById('themeColorMeta').setAttribute('content', '#0a111a');
+  }
+}
+
+function toggleTheme() {
+  document.body.classList.toggle('light-theme');
+  const isLight = document.body.classList.contains('light-theme');
+  
+  localStorage.setItem('ub_theme', isLight ? 'light' : 'dark');
+  document.getElementById('themeToggleBtn').textContent = isLight ? '☀️ Claro' : '🌙 Dark';
+  document.getElementById('themeColorMeta').setAttribute('content', isLight ? '#f4f6f9' : '#0a111a');
+}
+
+initTheme();
+
+// --- CONFIGURAÇÃO DA CHAVE PIX ---
+const MINHA_CHAVE_PIX = "99991409267"; 
+
+// --- CONFIGURAÇÃO DO FIREBASE (COM TRATAMENTO DE ERRO) ---
+let db = null;
+const firebaseConfig = {
+  apiKey: "AIzaSyCmUF5xXuhcezX9NeVcZSPnjXuCw54S2Tg",
+  authDomain: "ub-perfumes-importados.firebaseapp.com",
+  projectId: "ub-perfumes-importados",
+  storageBucket: "ub-perfumes-importados.firebasestorage.app",
+  messagingSenderId: "449250569359",
+  appId: "1:449250569359:web:400153357e9892a5f3d4fa",
+  measurementId: "G-QMNYHNC9WC"
+};
+
+if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+  } catch (err) {
+    console.warn("Firebase desativado. Modo LocalStorage ativo.");
+  }
+}
+
+// --- SERVICE WORKER & PWA ---
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('Service Worker Ativo!', reg))
+      .catch(err => console.log('Erro SW:', err));
+  });
+}
+
+let deferredPrompt;
+const installBanner = document.getElementById('installBanner');
+const btnInstall = document.getElementById('btnInstall');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBanner.style.display = 'flex';
+});
+
+btnInstall.addEventListener('click', () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((result) => {
+      if (result.outcome === 'accepted') { installBanner.style.display = 'none'; }
+      deferredPrompt = null;
+    });
+  }
+});
+
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+if (isIOS && !window.navigator.standalone) {
+  installBanner.style.display = 'flex';
+  document.getElementById('installText').textContent = '✨ Para instalar no iPhone: toque em Compartilhar ⎋ e "Adicionar à Tela de Início"';
+  btnInstall.style.display = 'none';
+}
+
+// --- LÓGICA DO CATÁLOGO E PRODUTOS ---
+const DEFAULT_IMG = 'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=500&q=80';
+
+let products = [];
+let cart = JSON.parse(localStorage.getItem('ub_cart')) || [];
+let activeCat = 'Todos';
+let uploadedBase64Image = '';
+let isAdminLoggedIn = false;
+
+const fmt = n => (n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+function listenProductsRealtime() {
+  if (db) {
+    db.collection('products').onSnapshot((snapshot) => {
+      products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderProducts();
+    }, () => {
+      loadLocalProducts();
+    });
+  } else {
+    loadLocalProducts();
+  }
+}
+
+function loadLocalProducts() {
+  products = JSON.parse(localStorage.getItem('ub_products')) || [
+    { id: '1', name: 'Sauvage Eau de Parfum 100ml', cat: 'Importados', price: 689.90, img: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=500&q=80' },
+    { id: '2', name: 'Bleu de Chanel Parfum 100ml', cat: 'Importados', price: 890.00, img: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?auto=format&fit=crop&w=500&q=80' },
+    { id: '3', name: 'Baccarat Rouge 540 Extrai', cat: 'Nichos', price: 1450.00, img: 'https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?auto=format&fit=crop&w=500&q=80' },
+    { id: '4', name: 'Good Girl Eau de Parfum', cat: 'Femininos', price: 549.90, img: 'https://images.unsplash.com/photo-1583445013765-46c20c4a6772?auto=format&fit=crop&w=500&q=80' }
+  ];
+  renderProducts();
+}
+
+function renderProducts() {
+  const query = document.getElementById('searchInput').value.toLowerCase().trim();
+  const categories = ['Todos', ...new Set(products.map(p => p.cat))];
+
+  document.getElementById('categoriesContainer').innerHTML = categories.map(c => `
+    <button class="chip ${c === activeCat ? 'active' : ''}" onclick="activeCat='${c}';renderProducts()">${c}</button>
+  `).join('');
+
+  const filtered = products.filter(p => 
+    (activeCat === 'Todos' || p.cat === activeCat) &&
+    (!query || p.name.toLowerCase().includes(query) || (p.cat && p.cat.toLowerCase().includes(query)))
+  );
+
+  document.getElementById('productCount').textContent = filtered.length + ' perfume(s)';
+
+  document.getElementById('productsGrid').innerHTML = filtered.map(p => `
+    <div class="product-card">
+      ${isAdminLoggedIn ? `<button class="btn-delete-prod" style="display:block" onclick="deleteProduct('${p.id}')">✕</button>` : ''}
+      <div class="product-thumb">
+        <img src="${p.img || DEFAULT_IMG}" alt="${p.name}" onerror="this.onerror=null;this.src='${DEFAULT_IMG}'">
+        <span class="product-cat-tag">${p.cat}</span>
+      </div>
+      <div class="product-info">
+        <div class="product-title">${p.name}</div>
+        <div class="product-price">${fmt(p.price)}</div>
+        <button class="btn-add" onclick="addToCart(event, '${p.id}')">Adicionar à Sacola</button>
+      </div>
+    </div>
+  `).join('');
+
+  updateCartBadge();
+}
+
+function addToCart(e, id) {
+  const product = products.find(p => p.id === id);
+  if (!product) return;
+
+  const item = cart.find(i => i.id === id);
+  if (item) { item.qty++; } else { cart.push({ ...product, qty: 1 }); }
+
+  saveCart();
+
+  const btn = e.currentTarget || e.target;
+  if (btn) {
+    const originalText = btn.textContent;
+    btn.textContent = '✓ Adicionado!';
+    btn.style.background = 'var(--gold-gradient)';
+    btn.style.color = '#0a111a';
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.style.background = '';
+      btn.style.color = '';
+    }, 1000);
+  }
+}
+
+function saveCart() {
+  localStorage.setItem('ub_cart', JSON.stringify(cart));
+  updateCartBadge();
+}
+
+function updateCartBadge() {
+  const total = cart.reduce((acc, i) => acc + i.qty, 0);
+  document.getElementById('cartBadge').textContent = total;
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('active');
+  if (id === 'cartModal') {
+    renderCart();
+    toggleDeliveryFields();
+    togglePaymentBox();
+  }
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+  setActiveNav(document.getElementById('navBoutique'));
+}
+
+function renderCart() {
+  const list = document.getElementById('cartItemsList');
+  if (!cart.length) {
+    list.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:20px 0;">Sua sacola de compras está vazia.</p>';
+    document.getElementById('cartTotal').textContent = fmt(0);
+    return;
+  }
+
+  let subtotal = 0;
+  list.innerHTML = cart.map((item, index) => {
+    subtotal += item.price * item.qty;
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;background:var(--bg-input);padding:10px 14px;border-radius:12px;border:1px solid var(--border-line)">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-title)">${item.name}</div>
+          <div style="font-size:11px;color:var(--text-muted)">${fmt(item.price)} cada</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button onclick="changeQty(${index}, -1)" style="border:0;background:var(--border-line);color:var(--text-main);padding:4px 8px;border-radius:6px;cursor:pointer;font-weight:bold">-</button>
+          <span style="font-size:12px;font-weight:bold">${item.qty}</span>
+          <button onclick="changeQty(${index}, 1)" style="border:0;background:var(--border-line);color:var(--text-main);padding:4px 8px;border-radius:6px;cursor:pointer;font-weight:bold">+</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const delivery = document.getElementById('deliverySelect').value;
+  const shipping = delivery === 'delivery' ? (subtotal >= 250 ? 0 : 15) : 0;
+
+  document.getElementById('cartTotal').textContent = fmt(subtotal + shipping);
+}
+
+function changeQty(index, delta) {
+  if (!cart[index]) return;
+  cart[index].qty += delta;
+  if (cart[index].qty <= 0) cart.splice(index, 1);
+  saveCart();
+  renderCart();
+}
+
+function maskCEP(input) {
+  let v = input.value.replace(/\D/g, '');
+  if (v.length > 5) v = v.substring(0, 5) + '-' + v.substring(5, 8);
+  input.value = v;
+}
+
+function maskPhone(input) {
+  let v = input.value.replace(/\D/g, '');
+  if (v.length > 11) v = v.substring(0, 11);
+  if (v.length > 6) {
+    v = '(' + v.substring(0, 2) + ') ' + v.substring(2, 7) + '-' + v.substring(7);
+  } else if (v.length > 2) {
+    v = '(' + v.substring(0, 2) + ') ' + v.substring(2);
+  } else if (v.length > 0) {
+    v = '(' + v;
+  }
+  input.value = v;
+}
+
+function searchCEP() {
+  const cep = document.getElementById('cepInput').value.replace(/\D/g, '');
+  if (cep.length !== 8) return alert('Por favor, digite um CEP válido com 8 números.');
+
+  fetch(`https://viacep.com.br/ws/${cep}/json/`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.erro) return alert('CEP não localizado!');
+      document.getElementById('addressStreet').value = data.logradouro || '';
+      document.getElementById('addressNeighborhood').value = data.bairro || '';
+      document.getElementById('addressCity').value = data.localidade || '';
+      document.getElementById('addressState').value = data.uf || '';
+      document.getElementById('addressNum').focus();
+    })
+    .catch(() => alert('Falha ao consultar o CEP. Preencha manualmente.'));
+}
+
+function toggleDeliveryFields() {
+  const isDelivery = document.getElementById('deliverySelect').value === 'delivery';
+  document.getElementById('deliveryFields').style.display = isDelivery ? 'block' : 'none';
+  renderCart();
+}
+
+function togglePaymentBox() {
+  const isPix = document.getElementById('paymentSelect').value === 'PIX';
+  const box = document.getElementById('pixBox');
+  if (isPix) {
+    box.style.display = 'block';
+    document.getElementById('pixKeyText').textContent = MINHA_CHAVE_PIX;
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+function copyPixKey() {
+  const pixText = MINHA_CHAVE_PIX;
+  const btn = document.getElementById('btnCopyPix');
+  const prevText = btn.textContent;
+
+  const copySuccess = () => {
+    btn.textContent = '✓ Chave Copiada!';
+    btn.style.background = 'var(--green)';
+    btn.style.color = '#fff';
+    setTimeout(() => {
+      btn.textContent = prevText;
+      btn.style.background = 'var(--gold-primary)';
+      btn.style.color = '#0a111a';
+    }, 1500);
+  };
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(pixText).then(copySuccess).catch(() => fallbackCopy(pixText));
+  } else {
+    fallbackCopy(pixText);
+  }
+
+  function fallbackCopy(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      copySuccess();
+    } catch (err) {
+      alert("Chave PIX: " + text);
+    }
+    document.body.removeChild(textArea);
+  }
+}
+
+function processCheckout() {
+  if (!cart.length) return alert('Sua sacola está vazia.');
+
+  const clientName = document.getElementById('clientName').value.trim();
+  const clientPhone = document.getElementById('clientPhone').value.trim();
+
+  if (!clientName || clientPhone.length < 14) return alert('Por favor, informe seu Nome e um WhatsApp válido com DDD.');
+
+  const deliveryType = document.getElementById('deliverySelect').value;
+
+  if (deliveryType === 'delivery') {
+    const street = document.getElementById('addressStreet').value.trim();
+    const num = document.getElementById('addressNum').value.trim();
+    if (!street || !num) return alert('Por favor, preencha a Rua e o Número do local de entrega.');
+  }
+
+  const paymentMethod = document.getElementById('paymentSelect').value;
+  let subtotal = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+  let shipping = deliveryType === 'delivery' ? (subtotal >= 250 ? 0 : 15) : 0;
+
+  sendWhatsAppMessage(clientName, clientPhone, deliveryType, paymentMethod, subtotal, shipping);
+}
+
+function sendWhatsAppMessage(clientName, clientPhone, deliveryType, paymentMethod, subtotal, shipping) {
+  let addressText = '';
+
+  if (deliveryType === 'delivery') {
+    const num = document.getElementById('addressNum').value.trim();
+    const street = document.getElementById('addressStreet').value.trim();
+    const neigh = document.getElementById('addressNeighborhood').value.trim();
+    const city = document.getElementById('addressCity').value.trim();
+    const state = document.getElementById('addressState').value.trim();
+    const ref = document.getElementById('addressRef').value.trim();
+
+    addressText = `📍 *Endereço de Entrega:*\n${street}, nº ${num}${neigh ? ' - ' + neigh : ''}\n${city}/${state}${ref ? '\nRef: ' + ref : ''}\n`;
+  } else {
+    addressText = `📍 *Retirada Exclusiva na Boutique*\n`;
+  }
+
+  let text = `👑 *PEDIDO - UB PERFUMES IMPORTADOS*\n\n`;
+  text += `👤 *Cliente:* ${clientName}\n📞 *WhatsApp:* ${clientPhone}\n\n`;
+  text += addressText + `\n`;
+  text += `📦 *Fragrâncias Selecionadas:*\n`;
+  cart.forEach(i => {
+    text += `• ${i.qty}x ${i.name} - ${fmt(i.price * i.qty)}\n`;
+  });
+  text += `\n🚚 *Envio:* ${deliveryType === 'delivery' ? (shipping === 0 ? 'Entrega VIP Grátis' : 'R$ 15,00') : 'Grátis (Retirada)'}`;
+  text += `\n💳 *Pagamento:* ${paymentMethod}`;
+  text += `\n✨ *Total do Pedido: ${fmt(subtotal + shipping)}*`;
+
+  window.open(`https://wa.me/559991409267?text=${encodeURIComponent(text)}`, '_blank');
+}
+
+function loginAdmin() {
+  const currentSavedPass = localStorage.getItem('ub_admin_pass') || 'ske1640';
+  if (document.getElementById('adminPass').value === currentSavedPass) {
+    isAdminLoggedIn = true;
+    document.getElementById('adminLoginForm').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    renderProducts();
+  } else {
+    alert('Senha incorreta!');
+  }
+}
+
+function changeAdminPassword() {
+  const newPass = document.getElementById('newAdminPass').value.trim();
+  if (!newPass) return alert('Digite a nova senha desejada.');
+  localStorage.setItem('ub_admin_pass', newPass);
+  alert('Senha alterada com sucesso!');
+  document.getElementById('newAdminPass').value = '';
+}
+
+function previewFileImage(input) {
+  const file = input.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) { uploadedBase64Image = e.target.result; }
+    reader.readAsDataURL(file);
+  }
+}
+
+/* CADASTRO DE PRODUTO CORRIGIDO */
+function saveProduct() {
+  const name = document.getElementById('pName').value.trim();
+  const cat = document.getElementById('pCat').value.trim() || 'Importados';
+  const price = parseFloat(document.getElementById('pPrice').value);
+  const urlImg = document.getElementById('pImg').value.trim();
+  
+  // Imagem final (Upload -> URL -> Foto Padrão)
+  const img = uploadedBase64Image || urlImg || DEFAULT_IMG;
+
+  if (!name) return alert('Por favor, digite o nome do perfume.');
+  if (isNaN(price) || price <= 0) return alert('Por favor, informe um valor/preço válido.');
+
+  const newProduct = { 
+    id: Date.now().toString(), 
+    name, 
+    cat, 
+    price, 
+    img, 
+    createdAt: new Date().toISOString() 
+  };
+
+  if (db) {
+    db.collection('products').add(newProduct)
+      .then(() => {
+        alert('Perfume publicado no Firebase!');
+        resetProductForm();
+      })
+      .catch((err) => {
+        console.warn('Falha no Firebase, salvando localmente...', err);
+        saveProductLocally(newProduct);
+      });
+  } else {
+    saveProductLocally(newProduct);
+  }
+}
+
+function saveProductLocally(newProduct) {
+  products.unshift(newProduct);
+  localStorage.setItem('ub_products', JSON.stringify(products));
+  alert('Perfume cadastrado com sucesso!');
+  resetProductForm();
+  renderProducts();
+}
+
+function deleteProduct(id) {
+  if (!confirm("Deseja remover este perfume do catálogo?")) return;
+  
+  if (db) {
+    db.collection('products').doc(id).delete()
+      .then(() => renderProducts())
+      .catch(() => deleteLocally(id));
+  } else {
+    deleteLocally(id);
+  }
+}
+
+function deleteLocally(id) {
+  products = products.filter(p => p.id !== id);
+  localStorage.setItem('ub_products', JSON.stringify(products));
+  renderProducts();
+}
+
+function resetProductForm() {
+  document.getElementById('pName').value = '';
+  document.getElementById('pCat').value = '';
+  document.getElementById('pPrice').value = '';
+  document.getElementById('pImg').value = '';
+  document.getElementById('pFile').value = '';
+  uploadedBase64Image = '';
+  closeModal('adminModal');
+}
+
+function askBot() {
+  const qInput = document.getElementById('botQuery');
+  const q = qInput.value.toLowerCase().trim();
+  const ans = document.getElementById('botAnswer');
+
+  if (!q) return;
+
+  if (q.includes('fixacao') || q.includes('fixação') || q.includes('durabilidade')) {
+    ans.innerHTML = '✨ <b>Dica UB:</b> Perfumes Eau de Parfum duram entre 8h a 12h na pele. Aplique em pontos quentes (pulsos, pescoço e atrás da orelha) sem esfregar.';
+  } else if (q.includes('doce') || q.includes('gourmand') || q.includes('baunilha')) {
+    ans.innerHTML = '🍯 <b>Recomendação:</b> Fragrâncias com notas de baunilha, fava tonka e âmbar oferecem projeção marcante e sedutora.';
+  } else if (q.includes('frete') || q.includes('entrega') || q.includes('envio')) {
+    ans.innerHTML = '🚚 <b>Envio Express:</b> Taxa única de R$ 15,00. <b>FRETE GRÁTIS</b> em compras acima de R$ 250,00.';
+  } else if (q.includes('pix') || q.includes('cartao') || q.includes('pagamento')) {
+    ans.innerHTML = '💳 <b>Opções de Pagamento:</b> Aceitamos PIX (Aprovação rápida), Cartões em até 12x e Pagamento no ato da entrega.';
+  } else {
+    ans.innerHTML = '🪄 <b>Atendimento UB Perfumes:</b> Como posso ajudar? Pergunte sobre fixação, frete, pagamentos ou família olfativa dos perfumes.';
+  }
+
+  qInput.value = '';
+}
+
+function scrollTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+listenProductsRealtime();
+</script>
+</body>
+</html>
